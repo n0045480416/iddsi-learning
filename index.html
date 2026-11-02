@@ -66,6 +66,7 @@ const qs=[
 ['不同品牌增稠劑的添加量應如何決定？',['採用同一通用克數','依品牌產品指示與測試結果','只看粉末顏色'],1,'品牌、基底與溫度都可能影響稠度。'],
 ['完成第一次合格測試後，依本課技能練習應？',['直接結束不留紀錄','完成第二次獨立測試並記錄','把樣本倒回原杯'],1,'課堂安排兩次測試以練習一致性與紀錄。'],
 ['空針內液體完全不流動時，正確做法是？',['直接宣布Level 4','改用適用的其他測試確認質地','強制推動推桿'],1,'Level 4不能只憑Flow Test完全不流動推定。']];
+window.IDDSI_QUIZ_KEY = Object.freeze(qs.map(q => q[2]));
 $('quizitems').innerHTML=qs.map((q,i)=>`<fieldset class="question" style="min-width:0"><legend><b>${i+1}. ${q[0]}</b></legend>${q[1].map((o,j)=>`<label><input type="radio" name="q${i}" value="${j}"> ${String.fromCharCode(65+j)}. ${o}</label>`).join('')}<div id="ex${i}" class="hide small"></div></fieldset>`).join('');
 $('submitquiz').onclick=()=>{let score=0,unanswered=0;qs.forEach((q,i)=>{let a=document.querySelector(`input[name="q${i}"]:checked`),ex=$('ex'+i);if(!a)unanswered++;let ok=a&&+a.value===q[2];if(ok)score++;ex.classList.remove('hide');ex.className='small '+(ok?'ok':'bad');ex.textContent=(ok?'✓ 正確。':'✗ 答案：'+String.fromCharCode(65+q[2])+'。')+q[3];});$('quizresult').innerHTML=`<b>本次得分：${score} / ${qs.length}</b>（${Math.round(score/qs.length*100)}分）。${unanswered?'尚有'+unanswered+'題未作答。':''} 建議針對答錯題目重看操作步驟。<p class="small">這是自我練習結果，尚未連接Zuvio成績系統。</p>`;};
 $('clearquiz').onclick=()=>{document.querySelectorAll('input[type=radio][name^=q]').forEach(x=>x.checked=false);qs.forEach((_,i)=>$('ex'+i).classList.add('hide'));$('quizresult').textContent='尚未作答';};
@@ -155,7 +156,7 @@ const IDDSI_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz7RnQNxU
   $('submitquiz').addEventListener('click',()=>{
     if(!runId){$('quizresult').insertAdjacentHTML('beforeend','<p class=bad>請先回首頁最上方輸入班級、學號與姓名，點選「開始本次紀錄」。</p>');return;}attempt++;pending=null;
     // qs is declared in the retained original teaching script.
-    const answers=qs.map((q,i)=>{const r=document.querySelector('input[name="q'+i+'"]:checked');return {questionId:'W06-Q'+(i+1),answer:r?r.value:'',correctAnswer:String(q[2]),isCorrect:!!r&&+r.value===q[2]};});
+    const key=window.IDDSI_QUIZ_KEY; if(!Array.isArray(key)||key.length!==8){$('cloud-status').textContent='測驗題庫未載入，請通知教師';return;} const answers=key.map((correct,i)=>{const r=document.querySelector('input[name="q'+i+'"]:checked');return {questionId:'W06-Q'+(i+1),answer:r?r.value:'',correctAnswer:String(correct),isCorrect:!!r&&Number(r.value)===correct};});
     note('quiz',{answers,attempt});
     $('cloud-status').textContent='測驗已完成，正在自動提交 / Đang gửi...'; setTimeout(()=>{$('cloud-send').click();},0);
   });
